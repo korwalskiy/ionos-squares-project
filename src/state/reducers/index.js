@@ -1,4 +1,4 @@
-import { initState } from "../store";
+import { initState, store } from "../store";
 import { handleSplit } from "../helper";
 import { types } from "../actions/types";
 
@@ -6,6 +6,7 @@ const reducer = (state = initState, action) => {
   switch (action.type) {
     case types.splitSquare:
       // find squares whose parent key == changeLog[lastChanged + 1] and remove them
+
       const childSquares = handleSplit(action.payload.id, action.payload.key);
       let parentIndex = [...state.squares].findIndex(
         sq => sq.key === action.payload.key
@@ -19,17 +20,16 @@ const reducer = (state = initState, action) => {
           ...childSquares,
           ...state.squares.slice(parentIndex + 1),
         ],
-        lastChanged: state.changeLog.length - 1,
+        lastChanged: action.payload.key,
         changeLog: [...state.changeLog, action.payload.key],
       };
 
     case types.undoSplit:
-      // newSquares - find squares whose parent key == changeLog[lastChanged], and set isShown to false
-      // lastChanged - index of parent key in changeLog / lastChanged - 1
+      let lastParentKey = state.lastChanged;
+      let lastParentKeyIndex = state.changeLog.indexOf(state.lastChanged);
 
-      let parentIndexToUndo = action.payload.key;
-      const newSquares = [...state.squares].map(square => {
-        if (square.parent === parentIndexToUndo) {
+      const undoSquares = [...state.squares].map(square => {
+        if (square.parent === lastParentKey) {
           square.isShown = false;
         }
         return square;
@@ -37,21 +37,33 @@ const reducer = (state = initState, action) => {
 
       return {
         ...state,
-        squares: [...newSquares],
-        lastChanged: state.changeLog.length - 1,
+        squares: [...undoSquares],
+        lastChanged: lastParentKeyIndex
+          ? state.changeLog[lastParentKeyIndex - 1]
+          : 0,
       };
 
     case types.redoSplit:
-      // const { newSquares, lastChanged } = redoSplit();
-      // //find squares whose parent key == changeLog[lastChanged], and set isShown to true
-      // // newSquares - find squares whose parent key == changeLog[lastChanged + 1], and set isShown to false
-      // // lastChanged - lastChanged + 1
-      // return {
-      //   ...state,
-      //   squares: [...state.squares, ...newSquares],
-      //   lastChanged: lastChanged,
-      // };
-      break;
+      let redoParentKeyIndex = state.lastChanged
+        ? state.changeLog.indexOf(state.lastChanged) + 1
+        : 0;
+      let redoParentKey = state.changeLog[redoParentKeyIndex];
+
+      const redoSquares = [...state.squares].map(square => {
+        if (square.parent === redoParentKey) {
+          square.isShown = true;
+        }
+        return square;
+      });
+
+      return {
+        ...state,
+        squares: [...redoSquares],
+        lastChanged:
+          redoParentKeyIndex === state.changeLog.length - 1
+            ? redoParentKey
+            : state.changeLog[redoParentKeyIndex],
+      };
 
     case types.resetSquare:
       return {

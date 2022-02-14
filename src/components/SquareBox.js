@@ -6,17 +6,26 @@ import Square from "./Square";
 
 const SquareBox = () => {
   const squares = useSelector(state => state.squares);
-  const changeLog = useSelector(state => state.lastChanged);
+  const lastChangedValue = useSelector(state => state.lastChanged);
+  const changeLog = useSelector(state => state.changeLog);
   const dispatch = useDispatch();
   const { splitSquare, resetSquare, undoSplit, redoSplit } = bindActionCreators(
     actionCreators,
     dispatch
   );
 
-  let undoPointerClass = `${changeLog.length != 1 ? "auto" : "none"}`;
-  let undoCursorClass = `${changeLog.length != 1 ? "pointer" : "not-allowed"}`;
-  let redoPointerClass = `${changeLog.length > 1 ? "auto" : "none"}`;
-  let redoCursorClass = `${changeLog.length > 1 ? "pointer" : "not-allowed"}`;
+  let undoPointerClass = `${lastChangedValue > 0 ? "auto" : "none"}`;
+  let undoCursorClass = `${lastChangedValue > 0 ? "pointer" : "not-allowed"}`;
+  let redoPointerClass = `${
+    lastChangedValue !== changeLog[changeLog.length - 1] && changeLog.length
+      ? "auto"
+      : "none"
+  }`;
+  let redoCursorClass = `${
+    lastChangedValue !== changeLog[changeLog.length - 1] && changeLog.length
+      ? "pointer"
+      : "not-allowed"
+  }`;
 
   return (
     <div style={{ padding: 20 }}>

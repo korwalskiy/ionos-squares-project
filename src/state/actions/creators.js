@@ -12,24 +12,20 @@ const splitSquare = (id, key) => {
   };
 };
 
-const undoSplit = key => {
+const undoSplit = () => {
   return dispatch => {
     dispatch({
       type: types.undoSplit,
-      payload: {
-        key,
-      },
+      payload: {},
     });
   };
 };
 
-const redoSplit = key => {
+const redoSplit = () => {
   return dispatch => {
     dispatch({
       type: types.redoSplit,
-      payload: {
-        key,
-      },
+      payload: {},
     });
   };
 };
